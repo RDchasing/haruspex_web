@@ -1,0 +1,60 @@
+{% extends "analysis/base.html" %}
+
+{% block title %}上传解析 | Haruspex 在线解析{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Upload · Analyze · Download</p>
+    <h1>在线使用 Haruspex 解析二进制文件</h1>
+    <p class="lead">上传普通二进制、`.a` 或 `.lib` 静态库，后端会自动 hash 命名、解包、解析并打包生成的 C 文件。</p>
+  </div>
+</section>
+
+<section class="workspace-grid">
+  <form class="upload-panel" action="{% url 'analysis:create_job' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="dropzone" data-file-picker>
+      <input id="binary" name="binary" type="file" required>
+      <div class="dropzone-icon">↑</div>
+      <div>
+        <strong>选择或拖放文件</strong>
+        <span data-file-name>支持普通二进制、.a、.lib 文件</span>
+      </div>
+    </div>
+    {% if error %}
+      <p class="form-error">{{ error }}</p>
+    {% endif %}
+    <button class="primary-button" type="submit">开始解析</button>
+  </form>
+
+  <aside class="info-panel">
+    <h2>处理策略</h2>
+    <ul class="check-list">
+      <li>上传文件使用 SHA-256 内容 hash 重命名</li>
+      <li>`.a` 和 `.lib` 文件先通过 `ar -x` 解包</li>
+      <li>每个成员文件独立调用 `haruspex filename`</li>
+      <li>所有生成的 `.c` 文件打包为 zip 下载</li>
+      <li>下载完成后自动清理临时文件</li>
+    </ul>
+  </aside>
+</section>
+
+{% if recent_jobs %}
+<section class="recent">
+  <div class="section-heading">
+    <h2>最近任务</h2>
+    <span>仅显示尚未清理的任务</span>
+  </div>
+  <div class="job-list">
+    {% for job in recent_jobs %}
+      <a class="job-row" href="{% url 'analysis:job_detail' job.id %}">
+        <span class="job-name">{{ job.original_name }}</span>
+        <span class="status-chip status-{{ job.status }}">{{ job.get_status_display }}</span>
+        <span class="job-progress">{{ job.progress }}%</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

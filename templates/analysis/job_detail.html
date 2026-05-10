@@ -1,0 +1,28 @@
+{% extends "analysis/base.html" %}
+
+{% block title %}解析进度 | Haruspex 在线解析{% endblock %}
+
+{% block content %}
+<section class="job-view" data-job-status-url="{% url 'analysis:job_status' job.id %}">
+  <div class="job-title">
+    <p class="eyebrow">Job {{ job.id }}</p>
+    <h1>{{ job.original_name }}</h1>
+    <span class="status-chip status-{{ job.status }}" data-status-label>{{ job.get_status_display }}</span>
+  </div>
+
+  <div class="progress-panel">
+    <div class="progress-meta">
+      <span data-message>{{ job.message|default:"正在准备任务。" }}</span>
+      <strong><span data-progress-text>{{ job.progress }}</span>%</strong>
+    </div>
+    <div class="progress-track" aria-label="解析进度">
+      <div class="progress-bar" style="width: {{ job.progress }}%" data-progress-bar></div>
+    </div>
+    <pre class="error-box{% if not job.error %} is-hidden{% endif %}" data-error>{{ job.error }}</pre>
+    <div class="actions">
+      <a class="secondary-button" href="{% url 'analysis:index' %}">返回上传</a>
+      <a class="primary-button{% if job.status != 'success' %} is-disabled{% endif %}" href="{% url 'analysis:download_result' job.id %}" data-download>下载结果</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
